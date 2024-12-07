@@ -1,1 +1,211 @@
-code
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+// Định nghĩa cấu trúc cho sách
+struct Book {
+    int id;
+    string name;
+    int stock;
+    double unitPrice;
+    double totalPrice;
+    double sellingPrice;
+    Book* next;  // Con trỏ để liên kết các sách
+};
+
+// Hàm kiểm tra xem mã sách đã tồn tại trong danh sách chưa
+bool isBookExist(Book* head, int id) {
+    Book* current = head;
+    while (current != nullptr) {
+        if (current->id == id) {
+            return true;
+        }
+        current = current->next;
+    }
+    return false;
+}
+
+// Hàm nhập thông tin một cuốn sách và thêm vào danh sách
+void inputBook(Book*& head) {
+    Book* newBook = new Book;
+    cout << "Nhap ma sach: ";
+    cin >> newBook->id;
+
+    // Kiểm tra mã sách đã tồn tại chưa
+    while (isBookExist(head, newBook->id)) {
+        cout << "Ma sach da ton tai. Vui long nhap ma sach khac: ";
+        cin >> newBook->id;
+    }
+
+    cin.ignore();  // Đọc bỏ ký tự newline
+    cout << "Nhap ten sach: ";
+    getline(cin, newBook->name);
+
+    cout << "Nhap so luong ton kho: ";
+    cin >> newBook->stock;
+
+    cout << "Nhap don gia ton kho: ";
+    cin >> newBook->unitPrice;
+    newBook->totalPrice = newBook->stock * newBook->unitPrice;
+
+    cout << "Nhap don gia ban: ";
+    cin >> newBook->sellingPrice;
+
+    newBook->next = head;  // Thêm sách vào đầu danh sách
+    head = newBook;
+}
+
+// Hàm thêm một cuốn sách vào danh sách
+void addBook(Book*& head) {
+    int id;
+    cout << "Nhap ma sach can them: ";
+    cin >> id;
+
+    Book* current = head;
+    while (current != nullptr) {
+        if (current->id == id) {
+            int newStock;
+            double newUnitPrice;
+
+            cout << "Sach da ton tai. Nhap so luong moi: ";
+            cin >> newStock;
+
+            cout << "Nhap don gia moi: ";
+            cin >> newUnitPrice;
+
+            // Tính lại giá trị trung bình của đơn giá
+            current->stock += newStock;
+            current->unitPrice = (current->unitPrice * current->stock + newUnitPrice * newStock) / current->stock;
+            current->totalPrice = current->stock * current->unitPrice;
+            return;
+        }
+        current = current->next;
+    }
+
+    // Nếu sách không tồn tại, thêm sách mới
+    inputBook(head);
+}
+
+// Hàm xóa sách theo mã sách
+void deleteBook(Book*& head) {
+    int id;
+    cout << "Nhap ma sach can xoa: ";
+    cin >> id;
+
+    Book* current = head;
+    Book* previous = nullptr;
+
+    while (current != nullptr && current->id != id) {
+        previous = current;
+        current = current->next;
+    }
+
+    if (current == nullptr) {
+        cout << "Ma sach khong ton tai.\n";
+        return;
+    }
+
+    if (previous == nullptr) {
+        head = current->next;  // Xóa sách đầu danh sách
+    } else {
+        previous->next = current->next;  // Xóa sách ở giữa hoặc cuối danh sách
+    }
+
+    delete current;  // Giải phóng bộ nhớ của sách đã xóa
+cout << "Sach da duoc xoa.\n";
+}
+
+// Hàm in tổng giá trị tồn kho
+void printTotalInventoryValue(Book* head) {
+    int totalStock = 0;
+    double totalValue = 0;
+
+    Book* current = head;
+    while (current != nullptr) {
+        totalStock += current->stock;
+        totalValue += current->totalPrice;
+        current = current->next;
+    }
+
+    cout << "Ton kho sach:\n";
+    cout << "So luong: " << totalStock << "\n";
+    cout << "So tien: " << totalValue << "\n";
+}
+
+// Hàm in danh sách sách dưới dạng bảng
+void printBookList(Book* head) {
+    Book* current = head;
+    cout << "Danh sach hang hoa:\n";
+    cout << "------------------------------------------------------------\n";
+    cout << "|  STT  |   Ma Sach   |       Ten Sach       | So Luong | Don Gia | Thanh Tien | Don Gia Ban |\n";
+    cout << "------------------------------------------------------------\n";
+
+    int index = 1;
+    while (current != nullptr) {
+        cout << "|  " << index++ << "    |   " << current->id 
+             << "        | " << current->name << "  "
+             << " | " << current->stock << "     | "
+             << current->unitPrice << " | "
+             << current->totalPrice << " | "
+             << current->sellingPrice << " |\n";
+        current = current->next;
+    }
+
+    cout << "------------------------------------------------------------\n";
+}
+
+// Hàm giải phóng bộ nhớ của danh sách sách
+void deleteAllBooks(Book*& head) {
+    Book* current = head;
+    while (current != nullptr) {
+        Book* temp = current;
+        current = current->next;
+        delete temp;
+    }
+    head = nullptr;
+}
+
+int main() {
+    Book* head = nullptr;
+    int choice;
+
+    do {
+        cout << "\n----- MENU -----\n";
+        cout << "1. Nhap danh sach sach\n";
+        cout << "2. Them cuon sach\n";
+        cout << "3. Xoa cuon sach\n";
+        cout << "4. In tong gia tri ton kho\n";
+        cout << "5. In danh sach sach\n";
+        cout << "6. Thoat\n";
+        cout << "Chon chuc nang: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                inputBook(head);
+                break;
+            case 2:
+                addBook(head);
+                break;
+            case 3:
+                deleteBook(head);
+                break;
+            case 4:
+                printTotalInventoryValue(head);
+                break;
+            case 5:
+                printBookList(head);
+                break;
+            case 6:
+                cout << "Thoat chuong trinh.\n";
+                break;
+            default:
+                cout << "Chuc nang khong hop le. Vui long chon lai.\n";
+        }
+    } while (choice != 6);
+
+    deleteAllBooks(head);  // Giải phóng bộ nhớ khi kết thúc chương trình
+
+    return 0;
+}
